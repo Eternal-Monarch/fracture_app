@@ -224,7 +224,7 @@ st.markdown("""
 
 # Sidebar
 with st.sidebar:
-    st.image("https://www.nitm.ac.in/p/logo", width=100)
+    st.image("https://www.nitm.ac.in/cygnus/nitmeghalaya/ckfinder/userfiles/images/NITM.gif", width=100)
     st.title("BoneScan AI")
     
     # Theme toggle button
