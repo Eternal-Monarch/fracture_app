@@ -33,67 +33,72 @@ def preprocess_image_tf(uploaded_image, model):
     return img_array
 
 # Streamlit Page Configuration
-st.set_page_config(page_title="Fracture Detection", page_icon="🪴", layout="wide")
+st.set_page_config(page_title="Fracture Detection AI", page_icon="🩻", layout="centered")
 
 # Sidebar
 with st.sidebar:
-    st.title("🔍 AI Fracture Classification")
-    theme = st.radio("Choose Theme", ["Light", "Dark"], index=0)
-    selected_model_name = st.selectbox("Select a Model", options=list(model_ids.keys()))
-    st.info("*Developer:* Subhasish Dutta")
+    st.image("https://cdn-icons-png.flaticon.com/512/3212/3212788.png", width=80)
+    st.title("🩺 Medical AI Tool")
+    theme = st.selectbox("App Theme", ["Light", "Dark"], index=0)
+    selected_model_name = st.selectbox("Choose Model", options=list(model_ids.keys()))
+    st.markdown("---")
+    st.markdown("👨‍💻 **Developer:** Subhasish Dutta")
 
 # Theme styles
 if theme == "Dark":
     st.markdown("""
         <style>
-            body { background-color: #1e1e1e; color: #ffffff; }
-            .stButton>button { background-color: #4CAF50; color: white; }
-            .stFileUploader>div { background-color: #444444; border: 1px solid #555555; }
+            body { background-color: #0b0c10; color: #c5c6c7; }
+            .stButton>button { background-color: #45a29e; color: white; }
+            .stFileUploader>div { background-color: #1f2833; border: 1px solid #66fcf1; }
         </style>
     """, unsafe_allow_html=True)
 else:
     st.markdown("""
         <style>
-            body { background-color: #ffffff; color: #000000; }
-            .stButton>button { background-color: #008CBA; color: white; }
-            .stFileUploader>div { background-color: #f5f5f5; border: 1px solid #dddddd; }
+            body { background-color: #f0f2f6; color: #1f2833; }
+            .stButton>button { background-color: #007acc; color: white; }
+            .stFileUploader>div { background-color: #ffffff; border: 1px solid #cccccc; }
         </style>
     """, unsafe_allow_html=True)
 
-# Title
-st.markdown("<h1 style='text-align: center; color: #4CAF50;'>Fracture Detection System</h1>", unsafe_allow_html=True)
-st.write("📂 *Upload an X-ray image to detect fractures using AI.*")
+# Header Section
+st.markdown("<h1 style='text-align: center; color: #45a29e;'>🩻 AI-Powered Fracture Detection</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Upload a medical X-ray image to analyze potential fractures with advanced deep learning models.</p>", unsafe_allow_html=True)
 
 # Load Model
 file_id = model_ids[selected_model_name]
 model = load_tensorflow_model(file_id, selected_model_name.replace(" ", "_"))
-st.success(f"✅ {selected_model_name} loaded successfully!")
+st.success(f"✅ Loaded {selected_model_name}")
 
-# File Upload
-uploaded_file = st.file_uploader("📂 Upload an X-ray image...", type=["jpg", "jpeg", "png"])
+# File Upload Section
+st.markdown("### 📤 Upload X-ray Image")
+uploaded_file = st.file_uploader("Choose an image file (JPG, JPEG, PNG)", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
     try:
-        st.image(uploaded_file, caption="📸 Uploaded Image", use_container_width=True)
+        st.image(uploaded_file, caption="Uploaded X-ray", use_container_width=True)
         image_file = Image.open(uploaded_file).convert("RGB")
         processed_image = preprocess_image_tf(image_file, model)
 
-        with st.spinner("🔍 Analyzing the image..."):
+        with st.spinner("🧪 Analyzing... Please wait"):
             prediction = model.predict(processed_image)
             confidence = prediction[0][0]
 
         result = "Fracture Detected" if confidence > 0.5 else "Normal"
         confidence_score = confidence if result == "Fracture Detected" else 1 - confidence
 
-        st.subheader("🔎 Results")
+        st.markdown("---")
+        st.subheader("📝 Diagnosis Report")
         if result == "Fracture Detected":
-            st.error(f"⚠ *{result}* with confidence: *{confidence_score:.2f}*")
-            st.write("🔗 *Recommendation:* Consult a healthcare professional.")
+            st.error(f"⚠ **{result}** with confidence: **{confidence_score:.2f}**")
+            st.info("📌 **Recommendation:** Please consult a certified medical professional for further examination.")
         else:
-            st.success(f"✅ *{result}* with confidence: *{confidence_score:.2f}*")
-            st.write("🎉 *No fracture detected! Maintain healthy bones.*")
+            st.success(f"✅ **{result}** with confidence: **{confidence_score:.2f}**")
+            st.balloons()
+            st.info("🎉 No fracture detected. Keep maintaining your bone health!")
 
     except Exception as e:
-        st.error(f"🚨 Error processing the image: {e}")
+        st.error(f"❌ Error analyzing the image: {e}")
 else:
-    st.info("💡 Please upload an image to start the analysis.")
+    st.warning("ℹ Please upload an X-ray image to begin the analysis.")
