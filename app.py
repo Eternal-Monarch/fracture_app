@@ -440,6 +440,6 @@ st.markdown("---")
 st.markdown("""
     <div style="text-align: center; color: var(--text); opacity: 0.7; font-size: 0.9rem; padding: 1rem;">
         <p>BoneScan AI v1.0 | For research purposes only | Not for clinical use</p>
-        <p>© 2023 Medical AI Research Group | All rights reserved</p>
+        <p>© 2025 Medical AI Research Group | All rights reserved</p>
     </div>
 """, unsafe_allow_html=True)
