@@ -40,24 +40,90 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for enhanced UI
+# Theme configuration in session state
+if 'theme' not in st.session_state:
+    st.session_state.theme = 'light'
+
+# Function to toggle theme
+def toggle_theme():
+    if st.session_state.theme == 'light':
+        st.session_state.theme = 'dark'
+    else:
+        st.session_state.theme = 'light'
+    set_theme()
+
+# Apply theme based on session state
+def set_theme():
+    if st.session_state.theme == 'dark':
+        dark_theme()
+    else:
+        light_theme()
+
+def dark_theme():
+    st.markdown(f"""
+        <style>
+            :root {{
+                --primary: #4a8fe7;
+                --secondary: #2d3748;
+                --accent: #44e5e7;
+                --background: #1a202c;
+                --text: #e2e8f0;
+                --card-bg: #2d3748;
+                --danger: #fc8181;
+                --success: #68d391;
+                --sidebar-bg: #1a202c;
+                --border: #4a5568;
+            }}
+            
+            [data-testid="stAppViewContainer"] {{
+                background-color: var(--background);
+                color: var(--text);
+            }}
+            
+            [data-testid="stSidebar"] {{
+                background-color: var(--sidebar-bg) !important;
+                border-right: 1px solid var(--border);
+            }}
+            
+            .st-b7 {{
+                color: var(--text) !important;
+            }}
+            
+            .stFileUploader>div {{
+                background-color: var(--card-bg) !important;
+                border-color: var(--border) !important;
+            }}
+            
+            .css-1aumxhk {{
+                color: var(--text);
+            }}
+        </style>
+    """, unsafe_allow_html=True)
+
+def light_theme():
+    st.markdown(f"""
+        <style>
+            :root {{
+                --primary: #4a8fe7;
+                --secondary: #c1d3fe;
+                --accent: #44e5e7;
+                --background: #f8f9fa;
+                --text: #333333;
+                --card-bg: #ffffff;
+                --danger: #ff6b6b;
+                --success: #51cf66;
+                --sidebar-bg: #f8f9fa;
+                --border: #e2e8f0;
+            }}
+        </style>
+    """, unsafe_allow_html=True)
+
+# Apply initial theme
+set_theme()
+
+# Custom CSS (shared between themes)
 st.markdown("""
     <style>
-    :root {
-        --primary: #4a8fe7;
-        --secondary: #c1d3fe;
-        --accent: #44e5e7;
-        --background: #f8f9fa;
-        --text: #333333;
-        --card-bg: #ffffff;
-        --danger: #ff6b6b;
-        --success: #51cf66;
-    }
-    
-    [data-testid="stAppViewContainer"] {
-        background-color: var(--background);
-    }
-    
     .header {
         background: linear-gradient(135deg, var(--primary), var(--accent));
         color: white;
@@ -69,10 +135,12 @@ st.markdown("""
     
     .card {
         background-color: var(--card-bg);
+        color: var(--text);
         border-radius: 10px;
         padding: 1.5rem;
         box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         margin-bottom: 1.5rem;
+        border: 1px solid var(--border);
     }
     
     .model-card {
@@ -112,10 +180,6 @@ st.markdown("""
         background-color: var(--card-bg);
     }
     
-    .sidebar .sidebar-content {
-        background: linear-gradient(180deg, #f8f9fa, #e9ecef);
-    }
-    
     .risk-high {
         color: var(--danger);
         font-weight: bold;
@@ -145,6 +209,16 @@ st.markdown("""
         margin-bottom: 1rem;
         color: var(--primary);
     }
+    
+    /* Fix for selectbox text color */
+    .st-b7, .st-c0, .st-c1, .st-c2 {
+        color: var(--text) !important;
+    }
+    
+    /* Fix for radio button colors */
+    .st-cf, .st-cg, .st-ch {
+        background-color: var(--card-bg) !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -152,6 +226,11 @@ st.markdown("""
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/2779/2779775.png", width=100)
     st.title("BoneScan AI")
+    
+    # Theme toggle button
+    if st.button(f"🌙 Switch to {'Light' if st.session_state.theme == 'dark' else 'Dark'} Mode"):
+        toggle_theme()
+    
     st.markdown("---")
     
     selected_model_name = st.selectbox(
@@ -267,7 +346,7 @@ with main_col1:
                     <div class="confidence-meter">
                         <div class="confidence-fill" style="width: {100 - confidence_percent}%;"></div>
                     </div>
-                    <div style="display: flex; justify-content: space-between;">
+                    <div style="display: flex; justify-content: space-between; color: var(--text);">
                         <span>0%</span>
                         <span>50%</span>
                         <span>100%</span>
@@ -359,7 +438,7 @@ with main_col2:
 # Footer
 st.markdown("---")
 st.markdown("""
-    <div style="text-align: center; color: #666; font-size: 0.9rem; padding: 1rem;">
+    <div style="text-align: center; color: var(--text); opacity: 0.7; font-size: 0.9rem; padding: 1rem;">
         <p>BoneScan AI v1.0 | For research purposes only | Not for clinical use</p>
         <p>© 2023 Medical AI Research Group | All rights reserved</p>
     </div>
