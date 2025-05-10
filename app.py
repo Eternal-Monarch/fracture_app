@@ -224,7 +224,7 @@ st.markdown("""
 
 # Sidebar
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/2779/2779775.png", width=100)
+    st.image("https://www.nitm.ac.in/p/logo", width=100)
     st.title("BoneScan AI")
     
     # Theme toggle button
