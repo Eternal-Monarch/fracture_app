@@ -430,72 +430,7 @@ with tab1:
                             </div>
                         """, unsafe_allow_html=True)
                         
-                        # # Patient info form for report
-                        # with st.form("patient_info_form"):
-                        #     st.markdown("### Patient Information for Report")
-                        #     p_col1, p_col2 = st.columns(2)
-                        #     with p_col1:
-                        #         patient_name = st.text_input("Full Name*", key="p_name_xray")
-                        #         patient_age = st.text_input("Age*", key="p_age_xray")
-                        #     with p_col2:
-                        #         patient_gender = st.selectbox("Gender*", ["Male", "Female", "Other"], key="p_gender_xray")
-                        #         patient_id = st.text_input("Patient ID*", key="p_id_xray")
-                        #     patient_allergies = st.text_area("Known Allergies", "None", key="p_allergies_xray")
-                            
-                        #     # Doctor info
-                        #     st.markdown("### Attending Physician")
-                        #     d_col1, d_col2 = st.columns(2)
-                        #     with d_col1:
-                        #         doctor_name = st.text_input("Doctor Name*", key="d_name_xray")
-                        #         doctor_specialty = st.text_input("Specialty*", key="d_specialty_xray")
-                        #     with d_col2:
-                        #         doctor_license = st.text_input("License Number*", key="d_license_xray")
-                        #         doctor_contact = st.text_input("Contact*", key="d_contact_xray")
-                            
-                        #     additional_notes = st.text_area("Additional Clinical Notes", key="notes_xray")
-                            
-                        #     if st.form_submit_button("Generate Medical Report"):
-                        #         if not all([patient_name, patient_age, patient_id, doctor_name, doctor_specialty, doctor_license]):
-                        #             st.error("Please fill all required fields (marked with *)")
-                        #         else:
-                        #             with st.spinner("Generating report..."):
-                        #                 patient_info = {
-                        #                     'name': patient_name,
-                        #                     'age': patient_age,
-                        #                     'gender': patient_gender,
-                        #                     'id': patient_id,
-                        #                     'allergies': patient_allergies
-                        #                 }
-                                        
-                        #                 doctor_info = {
-                        #                     'name': doctor_name,
-                        #                     'specialty': doctor_specialty,
-                        #                     'license': doctor_license,
-                        #                     'contact': doctor_contact
-                        #                 }
-                                        
-                        #                 pdf_path = create_medical_report(
-                        #                     report_type="X-ray Analysis",
-                        #                     image_path=image_path,
-                        #                     result=result,
-                        #                     confidence=confidence_percent,
-                        #                     model_name=selected_model_name,
-                        #                     recommendations=recommendations,
-                        #                     patient_info=patient_info,
-                        #                     medications=[],
-                        #                     instructions=additional_notes,
-                        #                     doctor_info=doctor_info
-                        #                 )
-                                        
-                        #                 st.success("Medical report generated successfully!")
-                        #                 st.markdown(create_download_link(pdf_path, "Xray_Analysis_Report.pdf"), unsafe_allow_html=True)
-                                        
-                        #                 # Preview
-                        #                 with open(pdf_path, "rb") as f:
-                        #                     base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-                        #                 pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600" type="application/pdf"></iframe>'
-                        #                 st.markdown(pdf_display, unsafe_allow_html=True)
-            
+                        
             except Exception as e:
                 st.error(f"Error processing image: {str(e)}")
                 st.markdown("""
