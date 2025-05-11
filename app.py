@@ -8,10 +8,15 @@ import gdown
 # Mapping of model names to Google Drive file IDs
 model_ids = {
     "DenseNet169 (Keras)": "1dIhc-0vd9sDoU5O6H0ZE6RYrP-CAyWks",
+    #orginal undersampling inception v3 modle code 
     # "InceptionV3 (Keras)": "1ARBL_SK66Ppj7_kJ1Pe2FhH2olbTQHWY",
     # "InceptionV3 WITH CNN (Keras)": "10B53bzc1pYrQnBfDqBWrDpNmzWoOl9ac",
+        #orginal undersampling inception v3 modle code 
     "InceptionV3 (Keras)": "10B53bzc1pYrQnBfDqBWrDpNmzWoOl9ac",
+        #orginal undersampling mobilenet v3 modle code 
     "MobileNet (Keras)": "14YuV3qZb_6FI7pXoiJx69HxiDD4uNc_Q",
+        #orginal undersampling inception v3 modle code 
+    "MobileNet (Keras)": "1mlfoy6kKXUwIciZW3nftmiMHOTzpy6_s",
     "EfficientNetB3 (Keras)": "1cQA3_oH2XjDFK-ZE9D9YsP6Ya8fQiPOy"
 }
 
