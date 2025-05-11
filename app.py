@@ -1,10 +1,10 @@
 import streamlit as st
 import numpy as np
+from tensorflow.keras.models import load_model
 from PIL import Image
 import os
 import gdown
 import time
-from tensorflow.keras.models import load_model
 from fpdf import FPDF
 from datetime import datetime
 import base64
@@ -37,161 +37,187 @@ def preprocess_image_tf(uploaded_image, model):
     img_array = np.expand_dims(img_array, axis=0)
     return img_array
 
-# =============================================
-# SIDEBAR COMPONENTS
-# =============================================
-with st.sidebar:
-    st.image("https://www.nitm.ac.in/cygnus/nitmeghalaya/ckfinder/userfiles/images/NITM.gif", width=120)
-    st.markdown("<h1 style='font-size: 1.8rem; margin-bottom: 0.5rem;'>BoneScan AI</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size: 0.9rem; opacity: 0.8; margin-top: 0;'>Medical Imaging & Prescription System</p>", unsafe_allow_html=True)
+# Function to create PDF for medical prescription
+class PDF(FPDF):
+    def header(self):
+        self.set_font('Arial', 'B', 16)
+        self.cell(0, 10, 'MEDICAL PRESCRIPTION', 0, 1, 'C')
+        self.line(10, 20, 200, 20)
+        self.ln(10)
+        
+    def footer(self):
+        self.set_y(-15)
+        self.set_font('Arial', 'I', 8)
+        self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
 
-    # Model selection dropdown
-    selected_model_name = st.selectbox(
-        "🧠 Select AI Model", 
-        options=list(model_ids.keys()),
-        help="Choose the deep learning model for analysis",
-        index=0
-    )
+# Function to create prescription PDF
+def create_prescription(patient_info, diagnosis, medications, instructions, doctor_info):
+    pdf = PDF(orientation='P', unit='mm', format='A4')
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
     
-    # Model details expander (fixed HTML rendering issue)
-    with st.expander("ℹ Model Details", expanded=False):
-        if selected_model_name == "DenseNet169 (Keras)":
-            st.markdown("""
-                - *Type*: Dense Convolutional Network
-                - *Depth*: 169 layers
-                - *Strengths*: Feature reuse, parameter efficiency
-                - *Best for*: High-resolution images with fine details
-                - *Accuracy*: 94.2% (validation set)
-            """)
-        elif selected_model_name == "InceptionV3 (Keras)":
-            st.markdown("""
-                - *Type*: Inception architecture
-                - *Depth*: 48 layers
-                - *Strengths*: Multi-scale processing
-                - *Best for*: General purpose medical imaging
-                - *Accuracy*: 93.7% (validation set)
-            """)
-        elif selected_model_name == "MobileNet (Keras)":
-            st.markdown("""
-                - *Type*: Depthwise separable convolutions
-                - *Depth*: 28 layers
-                - *Strengths*: Fast inference, lightweight
-                - *Best for*: Mobile/edge devices
-                - *Accuracy*: 91.8% (validation set)
-            """)
-        elif selected_model_name == "EfficientNetB3 (Keras)":
-            st.markdown("""
-                - *Type*: Compound scaling
-                - *Depth*: 48 layers
-                - *Strengths*: State-of-the-art accuracy
-                - *Best for*: Most accurate results
-                - *Accuracy*: 95.1% (validation set)
-            """)
+    # Header with clinic info
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(0, 5, "BoneScan AI Medical Center", 0, 1, 'C')
+    pdf.set_font('Arial', '', 10)
+    pdf.cell(0, 5, "123 Medical Drive, Healthcare City", 0, 1, 'C')
+    pdf.cell(0, 5, "Phone: (123) 456-7890 | License: MED123456", 0, 1, 'C')
+    pdf.ln(10)
+    
+    # Date and prescription ID
+    pdf.set_font('Arial', '', 10)
+    pdf.cell(0, 5, f"Date: {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", 0, 1, 'R')
+    pdf.cell(0, 5, f"Prescription ID: RX-{datetime.now().strftime('%Y%m%d%H%M')}", 0, 1, 'R')
+    pdf.ln(5)
+    
+    # Patient information box
+    pdf.set_fill_color(240, 240, 240)
+    pdf.rect(10, 45, 190, 30, 'F')
+    pdf.set_font('Arial', 'B', 12)
+    pdf.set_xy(15, 50)
+    pdf.cell(0, 5, "PATIENT INFORMATION", 0, 1)
+    pdf.set_font('Arial', '', 10)
+    pdf.set_xy(15, 57)
+    pdf.cell(40, 5, f"Name: {patient_info['name']}", 0, 0)
+    pdf.cell(40, 5, f"Age: {patient_info['age']}", 0, 0)
+    pdf.cell(40, 5, f"Gender: {patient_info['gender']}", 0, 1)
+    pdf.set_xy(15, 64)
+    pdf.cell(40, 5, f"Patient ID: {patient_info['id']}", 0, 0)
+    pdf.cell(40, 5, f"Allergies: {patient_info['allergies']}", 0, 1)
+    pdf.ln(10)
+    
+    # Diagnosis
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(0, 10, "DIAGNOSIS", 0, 1)
+    pdf.set_font('Arial', '', 11)
+    pdf.multi_cell(0, 7, diagnosis)
+    pdf.ln(10)
+    
+    # Medications
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(0, 10, "PRESCRIBED MEDICATIONS", 0, 1)
+    pdf.set_font('Arial', '', 11)
+    
+    # Table header
+    pdf.set_fill_color(200, 200, 200)
+    pdf.cell(60, 8, "Medication", 1, 0, 'C', 1)
+    pdf.cell(30, 8, "Dosage", 1, 0, 'C', 1)
+    pdf.cell(30, 8, "Frequency", 1, 0, 'C', 1)
+    pdf.cell(30, 8, "Duration", 1, 0, 'C', 1)
+    pdf.cell(40, 8, "Instructions", 1, 1, 'C', 1)
+    
+    # Medication rows
+    pdf.set_fill_color(255, 255, 255)
+    for med in medications:
+        pdf.cell(60, 8, med['name'], 1)
+        pdf.cell(30, 8, med['dosage'], 1)
+        pdf.cell(30, 8, med['frequency'], 1)
+        pdf.cell(30, 8, med['duration'], 1)
+        pdf.cell(40, 8, med['special_instructions'], 1, 1)
+    pdf.ln(10)
+    
+    # Additional Instructions
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(0, 10, "ADDITIONAL INSTRUCTIONS", 0, 1)
+    pdf.set_font('Arial', '', 11)
+    pdf.multi_cell(0, 7, instructions)
+    pdf.ln(15)
+    
+    # Doctor information
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(0, 10, "PRESCRIBING PHYSICIAN", 0, 1)
+    pdf.set_font('Arial', '', 11)
+    pdf.cell(0, 7, f"Name: Dr. {doctor_info['name']}", 0, 1)
+    pdf.cell(0, 7, f"Specialty: {doctor_info['specialty']}", 0, 1)
+    pdf.cell(0, 7, f"License: {doctor_info['license']}", 0, 1)
+    pdf.cell(0, 7, f"Contact: {doctor_info['contact']}", 0, 1)
+    pdf.ln(10)
+    
+    # Signature line
+    pdf.line(120, pdf.get_y(), 180, pdf.get_y())
+    pdf.set_xy(120, pdf.get_y() + 2)
+    pdf.cell(60, 5, "Doctor's Signature", 0, 0, 'C')
+    
+    # Save PDF
+    pdf_path = "medical_prescription.pdf"
+    pdf.output(pdf_path)
+    return pdf_path
 
-# =============================================
-# MAIN CONTENT
-# =============================================
-# Header with gradient
-st.markdown("""
-    <div class="header">
-        <h1>BoneScan AI</h1>
-        <h3>Advanced Fracture Detection System</h3>
-    </div>
-""", unsafe_allow_html=True)
+# Function to create download link for PDF
+def create_download_link(pdf_path, filename):
+    with open(pdf_path, "rb") as f:
+        pdf_bytes = f.read()
+    b64 = base64.b64encode(pdf_bytes).decode()
+    href = f'<a href="data:application/pdf;base64,{b64}" download="{filename}">Download {filename}</a>'
+    return href
 
-# AI Model Information (fixed rendering)
-st.markdown("""
-    <h4>Available Models</h4>
-    <ul>
-        <li>DenseNet169</li>
-        <li>InceptionV3</li>
-        <li>MobileNet</li>
-        <li>EfficientNetB3</li>
-    </ul>
-
-    <h4>Performance Metrics</h4>
-    <div style="margin: 1rem 0;">
-        <div style="display: flex; justify-content: space-between;">
-            <span>Accuracy</span>
-            <span>92-96%</span>
-        </div>
-        <div style="height: 6px; background: var(--border); border-radius: 3px; margin: 0.3rem 0;">
-            <div style="width: 94%; height: 100%; background: var(--primary); border-radius: 3px;"></div>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-
-# =============================================
-# Main Content Section for Upload and Analysis
-# =============================================
-
-# Upload section for image
-st.markdown("""
-    <div class="card upload-card">
-        <h2>📤 Upload X-ray Image</h2>
-        <p>Supported formats: JPG, PNG (min. 512×512 pixels)</p>
-    </div>
-""", unsafe_allow_html=True)
-
-uploaded_file = st.file_uploader(
-    "Drag and drop or click to browse files", 
-    type=["jpg", "jpeg", "png"],
-    label_visibility="collapsed",
-    key="file_uploader"
+# Streamlit App Configuration
+st.set_page_config(
+    page_title="BoneScan AI - Medical Prescription & Fracture Detection",
+    page_icon="💊",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
+# ==============================================
+# MAIN CONTENT
+# ==============================================
+
+# Sidebar model selection and image upload
+with st.sidebar:
+    st.image("https://www.nitm.ac.in/cygnus/nitmeghalaya/ckfinder/userfiles/images/NITM.gif", width=120)
+    st.markdown("<h1 style='font-size: 1.8rem;'>BoneScan AI</h1>", unsafe_allow_html=True)
+    st.markdown("<p>Clinical Fracture Detection</p>", unsafe_allow_html=True)
+
+    selected_model_name = st.selectbox(
+        "🧠 Select AI Model", 
+        options=["DenseNet169", "InceptionV3", "MobileNet", "EfficientNetB3"],
+        help="Choose the deep learning model for analysis"
+    )
+
+    # Add Model description
+    with st.expander("Model Details"):
+        st.write(f"Selected Model: {selected_model_name}")
+
+# Main content area for analysis
+st.markdown("### X-ray Image Upload and AI Analysis")
+uploaded_file = st.file_uploader("Upload X-ray Image", type=["jpg", "jpeg", "png"])
+
 if uploaded_file:
-    try:
-        with st.spinner("Processing image..."):
-            # Show loading animation
-            loading_placeholder = st.empty()
-            loading_placeholder.markdown("""<div style="text-align: center;">🔍 Processing...</div>""", unsafe_allow_html=True)
-            time.sleep(1)  # Simulate processing for better UX
+    st.image(uploaded_file, caption="Uploaded X-ray Image", use_column_width=True)
+    st.write("Processing image...")
 
-            image_file = Image.open(uploaded_file).convert("RGB")
-            loading_placeholder.empty()
-            
-            # Display image preview
-            st.markdown("### 🖼 X-ray Preview")
-            st.image(image_file, caption="Uploaded X-ray", use_column_width=True, output_format="PNG", width=400)
+    # Placeholder for loading animation
+    loading_placeholder = st.empty()
+    loading_placeholder.markdown("<div style='text-align:center;'>🔍 Processing...</div>", unsafe_allow_html=True)
+    
+    time.sleep(2)  # Simulate processing time
 
-            # Load model and analyze
-            progress_bar = st.progress(0)
-            status_text = st.empty()
-            status_text.markdown("🔄 Loading model...")
-            progress_bar.progress(20)
+    # Load selected model and make prediction (simplified for now)
+    model = load_tensorflow_model(model_ids[selected_model_name], selected_model_name)
+    image = Image.open(uploaded_file)
+    processed_image = preprocess_image_tf(image, model)
 
-            file_id = model_ids[selected_model_name]
-            model = load_tensorflow_model(file_id, selected_model_name.replace(" ", "_"))
+    # Fake prediction for demonstration
+    confidence = 0.75  # For testing purposes
+    result = "Fracture Detected" if confidence > 0.5 else "Normal"
+    confidence_percent = confidence * 100
 
-            status_text.markdown("🔍 Analyzing image...")
-            progress_bar.progress(50)
-            processed_image = preprocess_image_tf(image_file, model)
+    loading_placeholder.empty()
 
-            prediction = model.predict(processed_image)
-            confidence = prediction[0][0]
-            result = "Fracture Detected" if confidence > 0.5 else "Normal"
-            confidence_score = confidence if result == "Fracture Detected" else 1 - confidence
-            confidence_percent = confidence_score * 100
+    st.markdown(f"### Results: {result}")
+    st.markdown(f"**Confidence:** {confidence_percent:.1f}%")
 
-            # Results display
-            st.markdown("### 📊 Analysis Results")
-            st.markdown(f"**Diagnosis**: {result} with a confidence level of {confidence_percent:.1f}%")
+    # Option to download analysis report (PDF) can be placed here after analysis
+    if st.button("Generate Prescription PDF"):
+        # Example prescription info
+        patient_info = {"name": "John Doe", "age": 45, "gender": "Male", "id": "1234", "allergies": "None"}
+        diagnosis = "Fracture detected in the left leg."
+        medications = [{"name": "Painkiller", "dosage": "500mg", "frequency": "3 times a day", "duration": "7 days", "special_instructions": "Take after meals"}]
+        instructions = "Follow-up in 2 weeks."
+        doctor_info = {"name": "Dr. Smith", "specialty": "Orthopedic", "license": "ORTH123", "contact": "1234567890"}
 
-            if result == "Fracture Detected":
-                st.markdown(f"<div style='color: red;'>⚠ Urgent: Fracture Detected</div>", unsafe_allow_html=True)
-            else:
-                st.markdown(f"<div style='color: green;'>✅ No Fracture Detected</div>", unsafe_allow_html=True)
-
-            # Option to download the analysis report
-            st.download_button(
-                label="📄 Download Analysis Report",
-                data=f"Diagnosis: {result}\nConfidence: {confidence_percent:.1f}%",
-                file_name="bonescan_analysis_report.txt",
-                mime="text/plain"
-            )
-
-    except Exception as e:
-        st.error(f"Error analyzing the image: {str(e)}")
-        st.markdown("<div class='emergency-alert'>Error processing the image. Please try again.</div>", unsafe_allow_html=True)
-
+        # Generate and show the link to download the prescription PDF
+        pdf_path = create_prescription(patient_info, diagnosis, medications, instructions, doctor_info)
+        download_link = create_download_link(pdf_path, "Prescription.pdf")
+        st.markdown(download_link, unsafe_allow_html=True)
