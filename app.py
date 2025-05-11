@@ -4,9 +4,8 @@ from tensorflow.keras.models import load_model
 from PIL import Image
 import os
 import gdown
-from fpdf import FPDF
 import time
-from streamlit.components.v1 import html
+from fpdf import FPDF
 
 # Mapping of model names to Google Drive file IDs
 model_ids = {
