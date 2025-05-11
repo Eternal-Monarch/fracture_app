@@ -1,5 +1,6 @@
 streamlit
-tensorflow
-gdown
 numpy
+tensorflow
 Pillow
+gdown
+fpdf
