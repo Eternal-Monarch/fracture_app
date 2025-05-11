@@ -75,6 +75,7 @@ def dark_theme():
                 --sidebar-bg: #1A1A1A;
                 --border: #333333;
                 --highlight: rgba(108, 99, 255, 0.1);
+                --firewall: #ff0000;
             }}
             
             [data-testid="stAppViewContainer"] {{
@@ -98,6 +99,17 @@ def dark_theme():
             
             .css-1aumxhk {{
                 color: var(--text);
+            }}
+            
+            .firewall-effect {{
+                background-color: var(--firewall);
+                animation: pulseEffect 2s ease-out infinite;
+            }}
+            
+            @keyframes pulseEffect {{
+                0% {{ opacity: 0.8; }}
+                50% {{ opacity: 1; }}
+                100% {{ opacity: 0.8; }}
             }}
         </style>
     """, unsafe_allow_html=True)
@@ -153,19 +165,49 @@ st.markdown("""
     .header {
         background: linear-gradient(135deg, var(--primary), var(--accent));
         color: white;
-        padding: 2rem;
-        border-radius: 0 0 15px 15px;
+        padding: 3rem 2rem;
+        border-radius: 0 0 20px 20px;
         margin-bottom: 2rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .header::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none" opacity="0.1"><path d="M0,0 L100,0 L100,100 L0,100 Z" fill="white"/></svg>');
+        background-size: 100px 100px;
+        opacity: 0.1;
+    }
+    
+    .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        position: relative;
+        font-weight: 700;
+    }
+    
+    .header h3 {
+        font-size: 1.2rem;
+        font-weight: 300;
+        margin-top: 0;
+        position: relative;
+        opacity: 0.9;
     }
     
     .card {
         background-color: var(--card-bg);
         color: var(--text);
-        border-radius: 10px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        margin-bottom: 1.5rem;
+        border-radius: 12px;
+        padding: 1.8rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        margin-bottom: 1.8rem;
         border: 1px solid var(--border);
         transition: transform 0.3s, box-shadow 0.3s;
     }
@@ -176,302 +218,195 @@ st.markdown("""
     }
     
     .model-card {
-        border-left: 4px solid var(--primary);
+        border-left: 5px solid var(--primary);
     }
     
     .result-card {
-        border-left: 4px solid var(--accent);
+        border-left: 5px solid var(--accent);
     }
     
     .upload-card {
-        border-left: 4px solid var(--secondary);
+        border-left: 5px solid var(--secondary);
     }
     
     .stProgress > div > div > div {
         background-color: var(--accent);
     }
     
+    /* Button styles */
     .stButton>button {
         background-color: var(--primary);
         color: white;
         border: none;
-        border-radius: 8px;
-        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        padding: 0.7rem 1.5rem;
         transition: all 0.3s;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(108, 99, 255, 0.3);
     }
     
     .stButton>button:hover {
-        background-color: var(--accent);
+        background-color: var(--secondary);
         transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(108, 99, 255, 0.4);
     }
     
+    /* File uploader */
     .stFileUploader>div {
         border: 2px dashed var(--secondary);
-        border-radius: 10px;
-        padding: 2rem;
+        border-radius: 12px;
+        padding: 3rem;
         background-color: var(--card-bg);
+        transition: all 0.3s;
     }
     
+    .stFileUploader>div:hover {
+        border-color: var(--primary);
+        background-color: var(--highlight);
+    }
+    
+    /* Risk indicators */
     .risk-high {
         color: var(--danger);
         font-weight: bold;
+        font-size: 1.3rem;
     }
     
     .risk-low {
         color: var(--success);
         font-weight: bold;
+        font-size: 1.3rem;
     }
     
     .confidence-meter {
-        height: 20px;
-        background: linear-gradient(90deg, var(--danger), var(--success));
-        border-radius: 10px;
-        margin: 10px 0;
+        height: 12px;
+        background: var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
     }
     
     .confidence-fill {
         height: 100%;
-        background-color: var(--card-bg);
-        border-radius: 10px;
-        transition: width 0.5s;
+        border-radius: 6px;
+        transition: width 0.8s ease-out;
+        background: linear-gradient(90deg, var(--danger), var(--warning), var(--success));
     }
     
+    .confidence-scale {
+        display: flex;
+        justify-content: space-between;
+        color: var(--text);
+        opacity: 0.6;
+        font-size: 0.8rem;
+    }
+    
+    /* Feature icons */
     .feature-icon {
-        font-size: 2rem;
-        margin-bottom: 1rem;
+        font-size: 2.5rem;
+        margin-bottom: 1.2rem;
         color: var(--primary);
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
     
-    /* Fix for selectbox text color */
-    .st-b7, .st-c0, .st-c1, .st-c2 {
-        color: var(--text) !important;
+    /* Model performance indicators */
+    .metric {
+        display: flex;
+        align-items: center;
+        margin: 0.8rem 0;
     }
     
-    /* Fix for radio button colors */
-    .st-cf, .st-cg, .st-ch {
-        background-color: var(--card-bg) !important;
+    .metric-bar {
+        height: 8px;
+        border-radius: 4px;
+        margin-left: 1rem;
+        flex-grow: 1;
+        background-color: var(--border);
+        position: relative;
+    }
+    
+    .metric-fill {
+        height: 100%;
+        border-radius: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+    
+    /* Loading animation */
+    @keyframes pulse {
+        0% { opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { opacity: 0.6; }
+    }
+    
+    .loading-pulse {
+        animation: pulse 1.5s infinite;
+    }
+    
+    /* Tooltip styles */
+    .tooltip {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+    }
+    
+    .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 200px;
+        background-color: var(--card-bg);
+        color: var(--text);
+        text-align: center;
+        border-radius: 6px;
+        padding: 8px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        border: 1px solid var(--border);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        font-size: 0.9rem;
+    }
+    
+    .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .header h1 {
+            font-size: 2rem;
+        }
+        
+        .header h3 {
+            font-size: 1rem;
+        }
+        
+        .card {
+            padding: 1.2rem;
+        }
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: var(--border);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--secondary);
     }
     </style>
-""", unsafe_allow_html=True)
-
-# Sidebar
-with st.sidebar:
-    st.image("https://www.nitm.ac.in/cygnus/nitmeghalaya/ckfinder/userfiles/images/NITM.gif", width=100)
-    st.title("BoneScan AI")
-    
-    # Theme toggle button
-    if st.button(f"🌙 Switch to {'Light' if st.session_state.theme == 'dark' else 'Dark'} Mode"):
-        toggle_theme()
-    
-    st.markdown("---")
-    
-    selected_model_name = st.selectbox(
-        "🧠 Select AI Model", 
-        options=list(model_ids.keys()),
-        help="Choose the deep learning model for analysis"
-    )
-    
-    st.markdown("---")
-    st.markdown("### 🔍 About")
-    st.markdown("""
-    BoneScan AI uses advanced deep learning to detect fractures in X-ray images. 
-    This tool assists medical professionals in preliminary diagnosis.
-    """)
-    
-    st.markdown("---")
-    st.markdown("### 📝 Instructions")
-    st.markdown("""
-    1. Upload a clear X-ray image
-    2. Select analysis model
-    3. View detailed results
-    """)
-    
-    st.markdown("---")
-    st.markdown("👨‍⚕ *Medical Disclaimer*")
-    st.markdown("""
-    This tool is for research purposes only. Always consult a qualified healthcare professional for medical diagnosis.
-    """)
-
-# Main Content
-# Header Section
-st.markdown("""
-    <div class="header">
-        <h1 style="text-align: center; margin-bottom: 0.5rem;">🦴 BoneScan AI</h1>
-        <h3 style="text-align: center; font-weight: 300; margin-top: 0;">
-            Advanced Fracture Detection System
-        </h3>
-    </div>
-""", unsafe_allow_html=True)
-
-# Three column layout for features
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.markdown("""
-        <div class="card" style="text-align: center;">
-            <div class="feature-icon">⚡</div>
-            <h3>Rapid Analysis</h3>
-            <p>Get results in seconds with our optimized AI models</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
-with col2:
-    st.markdown("""
-        <div class="card" style="text-align: center;">
-            <div class="feature-icon">🔍</div>
-            <h3>Multi-Model</h3>
-            <p>Choose from several state-of-the-art deep learning architectures</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
-with col3:
-    st.markdown("""
-        <div class="card" style="text-align: center;">
-            <div class="feature-icon">📊</div>
-            <h3>Detailed Reports</h3>
-            <p>Comprehensive analysis with confidence metrics</p>
-        </div>
-    """, unsafe_allow_html=True)
-
-# Main content columns
-main_col1, main_col2 = st.columns([2, 1])
-
-with main_col1:
-    st.markdown("""
-        <div class="card upload-card">
-            <h2>📤 Upload X-ray Image</h2>
-            <p>For best results, use clear, high-contrast images of the affected area.</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    uploaded_file = st.file_uploader(
-        "Drag and drop or click to upload", 
-        type=["jpg", "jpeg", "png"],
-        label_visibility="collapsed"
-    )
-    
-    if uploaded_file:
-        try:
-            image_file = Image.open(uploaded_file).convert("RGB")
-            st.image(
-                uploaded_file, 
-                caption="Uploaded X-ray", 
-                use_column_width=True,
-                output_format="PNG"
-            )
-            
-            # Load selected model
-            with st.spinner(f"🔄 Loading {selected_model_name}..."):
-                file_id = model_ids[selected_model_name]
-                model = load_tensorflow_model(file_id, selected_model_name.replace(" ", "_"))
-                
-            with st.spinner("🔍 Analyzing image..."):
-                processed_image = preprocess_image_tf(image_file, model)
-                prediction = model.predict(processed_image)
-                confidence = prediction[0][0]
-                
-                result = "Fracture Detected" if confidence > 0.5 else "Normal"
-                confidence_score = confidence if result == "Fracture Detected" else 1 - confidence
-                confidence_percent = confidence_score * 100
-                
-                # Visualization
-                st.markdown(f"""
-                    <div class="confidence-meter">
-                        <div class="confidence-fill" style="width: {100 - confidence_percent}%;"></div>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; color: var(--text);">
-                        <span>0%</span>
-                        <span>50%</span>
-                        <span>100%</span>
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                # Results card
-                st.markdown(f"""
-                    <div class="card result-card">
-                        <h2>📝 Analysis Results</h2>
-                        <div style="font-size: 1.2rem; margin: 1rem 0;">
-                            Status: <span class="{'risk-high' if result == 'Fracture Detected' else 'risk-low'}">
-                                {result}
-                            </span>
-                        </div>
-                        <div style="font-size: 1.2rem;">
-                            Confidence: <strong>{confidence_percent:.1f}%</strong>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                # Recommendations
-                if result == "Fracture Detected":
-                    st.markdown("""
-                        <div class="card" style="border-left: 4px solid var(--danger);">
-                            <h3>⚠ Medical Recommendation</h3>
-                            <p>Our analysis indicates a potential fracture. Please:</p>
-                            <ul>
-                                <li>Consult an orthopedic specialist immediately</li>
-                                <li>Immobilize the affected area</li>
-                                <li>Avoid putting weight on the injured limb</li>
-                                <li>Apply ice to reduce swelling if appropriate</li>
-                            </ul>
-                        </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown("""
-                        <div class="card" style="border-left: 4px solid var(--success);">
-                            <h3>✅ No Fracture Detected</h3>
-                            <p>Our analysis found no evidence of fracture. However:</p>
-                            <ul>
-                                <li>If pain persists, consult a healthcare provider</li>
-                                <li>Consider follow-up imaging if symptoms worsen</li>
-                                <li>Practice proper bone health with calcium and vitamin D</li>
-                            </ul>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    st.balloons()
-                    
-        except Exception as e:
-            st.error(f"Error analyzing the image: {str(e)}")
-
-with main_col2:
-    st.markdown("""
-        <div class="card model-card">
-            <h2>🧠 Selected Model</h2>
-            <p><strong>{}</strong></p>
-            <p>This model analyzes bone structures to detect potential fractures with advanced computer vision techniques.</p>
-        </div>
-    """.format(selected_model_name), unsafe_allow_html=True)
-    
-    st.markdown("""
-        <div class="card">
-            <h2>ℹ How It Works</h2>
-            <ol>
-                <li>Upload X-ray image</li>
-                <li>AI processes image features</li>
-                <li>Deep learning analysis</li>
-                <li>Confidence score generated</li>
-                <li>Results displayed</li>
-            </ol>
-            <p><small>Note: Analysis takes 10-30 seconds depending on model complexity.</small></p>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
-        <div class="card">
-            <h2>📊 Model Performance</h2>
-            <p>Average metrics across validation set:</p>
-            <ul>
-                <li>Accuracy: 92-96%</li>
-                <li>Sensitivity: 89-94%</li>
-                <li>Specificity: 93-97%</li>
-            </ul>
-            <p><small>Performance varies by model and image quality.</small></p>
-        </div>
-    """, unsafe_allow_html=True)
-
-# Footer
-st.markdown("---")
-st.markdown("""
-    <div style="text-align: center; color: var(--text); opacity: 0.7; font-size: 0.9rem; padding: 1rem;">
-        <p>BoneScan AI v1.0 | For research purposes only | Not for clinical use</p>
-        <p>© 2025 Medical AI Research Group | All rights reserved</p>
-    </div>
 """, unsafe_allow_html=True)
