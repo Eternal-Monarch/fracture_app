@@ -4,12 +4,10 @@ from tensorflow.keras.models import load_model
 from PIL import Image
 import os
 import gdown
-import time
 from fpdf import FPDF
 from datetime import datetime
-import base64
 
-# Model mappings
+# Mapping of model names to Google Drive file IDs
 model_ids = {
     "DenseNet169 (Keras)": "1dIhc-0vd9sDoU5O6H0ZE6RYrP-CAyWks",
     "InceptionV3 (Keras)": "10B53bzc1pYrQnBfDqBWrDpNmzWoOl9ac",
@@ -17,6 +15,7 @@ model_ids = {
     "EfficientNetB3 (Keras)": "1cQA3_oH2XjDFK-ZE9D9YsP6Ya8fQiPOy"
 }
 
+# Function to download and load model
 @st.cache_resource
 def load_tensorflow_model(file_id, model_name):
     model_path = f"models/{model_name}.keras"
@@ -26,116 +25,62 @@ def load_tensorflow_model(file_id, model_name):
         gdown.download(f"https://drive.google.com/uc?id={file_id}", model_path, quiet=False)
     return load_model(model_path)
 
+# Preprocessing function
 def preprocess_image_tf(uploaded_image, model):
     input_shape = model.input_shape[1:3]
-    img = uploaded_image.resize(input_shape).convert("L")
+    img = uploaded_image.resize(input_shape).convert("RGB")  # Convert to RGB using Pillow
     img_array = np.array(img) / 255.0
-    img_array = np.stack([img_array] * 3, axis=-1)
-    img_array = np.expand_dims(img_array, axis=0)
+    img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
     return img_array
 
-class PDF(FPDF):
-    def header(self):
-        self.set_font('Arial', 'B', 16)
-        self.cell(0, 10, 'BoneScan AI - Medical Imaging Report', 0, 1, 'C')
-        self.ln(10)
-        
-    def footer(self):
-        self.set_y(-15)
-        self.set_font('Arial', 'I', 8)
-        self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
-
-def create_pdf_report(image_path, result, confidence, model_name, recommendations):
-    pdf = PDF(orientation='P', unit='mm', format='A4')
-    pdf.add_page()
+# Function to create PDF Report
+def create_pdf(patient_name, doctor_name, result, confidence_percent, selected_model_name, timestamp, logo_path):
+    pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
-    
-    # Report Header
-    pdf.set_font('Arial', '', 10)
-    pdf.cell(0, 5, f"Report Date: {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", 0, 1, 'R')
-    pdf.ln(5)
-    
-    # Patient Information Box
-    pdf.set_fill_color(240, 240, 240)
-    pdf.rect(10, 30, 190, 30, 'F')
-    pdf.set_font('Arial', 'B', 12)
-    pdf.set_xy(15, 35)
-    pdf.cell(0, 5, "PATIENT INFORMATION", 0, 1)
-    pdf.set_font('Arial', '', 10)
-    pdf.set_xy(15, 42)
-    pdf.cell(40, 5, "Name: ___________________________", 0, 0)
-    pdf.cell(40, 5, "Age: ______", 0, 0)
-    pdf.cell(40, 5, "Gender: ______", 0, 1)
-    pdf.set_xy(15, 49)
-    pdf.cell(40, 5, "Patient ID: _____________________", 0, 0)
-    pdf.cell(40, 5, "Date: ______/______/______", 0, 1)
-    pdf.ln(15)
-    
-    # Image Section
-    if os.path.exists(image_path):
-        pdf.set_font('Arial', 'B', 12)
-        pdf.cell(0, 10, "X-RAY IMAGE", 0, 1, 'C')
-        try:
-            pdf.image(image_path, x=50, w=110)
-        except:
-            pdf.cell(0, 10, "[Image could not be loaded]", 0, 1, 'C')
-        pdf.ln(10)
-    
-    # Results Section
-    pdf.set_font('Arial', 'B', 14)
-    pdf.cell(0, 10, "ANALYSIS RESULTS", 0, 1, 'C')
-    pdf.ln(5)
-    
-    pdf.set_fill_color(230, 230, 230)
-    pdf.rect(20, pdf.get_y(), 170, 30, 'F')
-    
-    pdf.set_font('Arial', 'B', 12)
-    pdf.set_xy(25, pdf.get_y() + 5)
-    pdf.cell(40, 5, "Diagnosis:", 0, 0)
-    pdf.set_font('Arial', 'B', 12)
-    pdf.set_text_color(220, 50, 50) if "Fracture" in result else pdf.set_text_color(50, 150, 50)
-    pdf.cell(40, 5, result, 0, 1)
-    
-    pdf.set_text_color(0, 0, 0)
-    pdf.set_font('Arial', '', 11)
-    pdf.set_xy(25, pdf.get_y() + 5)
-    pdf.cell(40, 5, "Confidence Level:", 0, 0)
-    pdf.cell(40, 5, f"{confidence:.1f}%", 0, 1)
-    
-    pdf.set_xy(25, pdf.get_y() + 5)
-    pdf.cell(40, 5, "AI Model Used:", 0, 0)
-    pdf.cell(40, 5, model_name, 0, 1)
-    pdf.ln(15)
-    
-    # Recommendations Section
-    pdf.set_font('Arial', 'B', 14)
-    pdf.cell(0, 10, "MEDICAL RECOMMENDATIONS", 0, 1, 'C')
-    pdf.ln(5)
-    
-    pdf.set_font('Arial', '', 11)
-    for rec in recommendations:
-        pdf.cell(10, 7)
-        pdf.cell(0, 7, f"• {rec}", 0, 1)
-    pdf.ln(10)
-    
+    pdf.add_page()
+
+    # Set Font
+    pdf.set_font("Arial", "B", 16)
+
+    # Logo on the left side
+    pdf.image(logo_path, 10, 8, 30)  # Ensure the correct path to your logo
+
+    # Title Section
+    pdf.cell(200, 10, "BoneScan AI - Fracture Detection Report", ln=True, align="C")
+    pdf.ln(10)  # Line break
+
+    # Report Info
+    pdf.set_font("Arial", size=12)
+    pdf.cell(100, 10, f"Patient Name: {patient_name}", ln=True)
+    pdf.cell(100, 10, f"Doctor's Name: {doctor_name}", ln=True)
+    pdf.cell(100, 10, f"Date: {timestamp.strftime('%Y-%m-%d')}", ln=True)
+    pdf.cell(100, 10, f"Time: {timestamp.strftime('%H:%M:%S')}", ln=True)
+    pdf.ln(10)  # Line break
+
+    # Model and result
+    pdf.cell(100, 10, f"Model Used: {selected_model_name}", ln=True)
+    pdf.cell(100, 10, f"Result: {result}", ln=True)
+    pdf.cell(100, 10, f"Confidence Level: {confidence_percent:.2f}%", ln=True)
+    pdf.ln(10)  # Line break
+
     # Disclaimer
-    pdf.set_font('Arial', 'I', 9)
-    pdf.multi_cell(0, 5, "DISCLAIMER: This report was generated by BoneScan AI and should be interpreted by a qualified radiologist. "
-                         "The findings are based on AI analysis of the provided image and should be correlated with clinical "
-                         "examination and other diagnostic tests as needed.", 0, 'C')
-    
-    pdf_path = "medical_report.pdf"
-    pdf.output(pdf_path)
-    return pdf_path
+    pdf.set_font("Arial", "I", 10)
+    pdf.multi_cell(0, 10, "Disclaimer: This tool provides an AI-assisted preliminary assessment and should not be used as a substitute for professional medical diagnosis. Always consult with a healthcare professional for confirmation of the results.")
 
-def create_download_link(pdf_path):
-    with open(pdf_path, "rb") as f:
-        pdf_bytes = f.read()
-    b64 = base64.b64encode(pdf_bytes).decode()
-    href = f'<a href="data:application/pdf;base64,{b64}" download="BoneScan_Report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf">Download PDF Report</a>'
-    return href
+    # Recommendations
+    pdf.set_font("Arial", "B", 12)
+    if result == "Fracture Detected":
+        pdf.multi_cell(0, 10, "Recommendation: Immediate consultation with an orthopedic specialist is advised. Immobilize the affected area, apply ice, and seek urgent care.")
+    else:
+        pdf.multi_cell(0, 10, "Recommendation: No fracture detected. However, if pain persists, consult a healthcare provider for further evaluation.")
 
-# Streamlit App Configuration
+    # Save PDF to a file
+    output_filename = "BoneScan_Report.pdf"
+    pdf.output(output_filename)
+
+    return output_filename
+
+# Streamlit Page Configuration
 st.set_page_config(
     page_title="BoneScan AI - Fracture Detection",
     page_icon="🦴",
@@ -143,351 +88,60 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# CSS Styling
-st.markdown("""
-<style>
-:root {
-    --primary: #4E6EAF;
-    --primary-dark: #3A5A8A;
-    --secondary: #FF7E5D;
-    --accent: #6C63FF;
-    --background: #F8FAFC;
-    --text: #2D3748;
-    --text-light: #718096;
-    --card-bg: #FFFFFF;
-    --danger: #E53E3E;
-    --success: #38A169;
-    --warning: #DD6B20;
-    --sidebar-bg: #FFFFFF;
-    --border: #E2E8F0;
-    --highlight: rgba(78, 110, 175, 0.1);
-}
-
-[data-theme="dark"] {
-    --primary: #6C63FF;
-    --primary-dark: #564EC2;
-    --secondary: #FF7E5D;
-    --accent: #4E6EAF;
-    --background: #121212;
-    --text: #E2E8F0;
-    --text-light: #A0AEC0;
-    --card-bg: #1E1E1E;
-    --danger: #FC8181;
-    --success: #68D391;
-    --warning: #F6AD55;
-    --sidebar-bg: #1A1A1A;
-    --border: #2D3748;
-    --highlight: rgba(108, 99, 255, 0.1);
-}
-
-/* Layout */
-[data-testid="stAppViewContainer"] {
-    background-color: var(--background);
-    color: var(--text);
-}
-
-[data-testid="stSidebar"] {
-    background-color: var(--sidebar-bg) !important;
-    border-right: 1px solid var(--border);
-}
-
-.main .block-container {
-    padding: 2rem 2rem 1rem;
-}
-
-/* Cards */
-.card {
-    background-color: var(--card-bg);
-    color: var(--text);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    border: 1px solid var(--border);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.model-card {
-    border-left: 4px solid var(--primary);
-}
-
-.result-card {
-    border-left: 4px solid var(--secondary);
-}
-
-.upload-card {
-    border-left: 4px solid var(--accent);
-}
-
-/* Typography */
-h1, h2, h3, h4, h5, h6 {
-    color: var(--text);
-}
-
-.risk-high {
-    color: var(--danger);
-    font-weight: bold;
-}
-
-.risk-low {
-    color: var(--success);
-    font-weight: bold;
-}
-
-/* Buttons */
-.stButton>button {
-    background-color: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 0.6rem 1.2rem;
-    font-weight: 500;
-    transition: all 0.3s;
-}
-
-.stButton>button:hover {
-    background-color: var(--primary-dark);
-    transform: translateY(-2px);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .header h1 {
-        font-size: 1.8rem;
-    }
-    
-    .header h3 {
-        font-size: 1rem;
-    }
-    
-    .card {
-        padding: 1.2rem;
-    }
-}
-</style>
-""", unsafe_allow_html=True)
-
-# Sidebar
+# Sidebar for patient details
 with st.sidebar:
-    st.image("https://www.nitm.ac.in/cygnus/nitmeghalaya/ckfinder/userfiles/images/NITM.gif", width=120)
-    st.markdown("<h1 style='font-size: 1.8rem; margin-bottom: 0.5rem;'>BoneScan AI</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size: 0.9rem; opacity: 0.8; margin-top: 0;'>Medical Imaging Analysis</p>", unsafe_allow_html=True)
+    st.image("https://www.nitm.ac.in/cygnus/nitmeghalaya/ckfinder/userfiles/images/NITM.gif", width=120)  # Replace with your logo path
+    st.title("BoneScan AI")
     
-    st.markdown("---")
-    
-    selected_model_name = st.selectbox(
-        "🧠 Select AI Model", 
-        options=list(model_ids.keys()),
-        index=0
-    )
-    
-    st.markdown("---")
-    st.markdown("### 📝 Instructions")
+    patient_name = st.text_input("Patient Name", "John Doe")
+    doctor_name = st.text_input("Doctor's Name", "Dr. Smith")
+
+    # Model selection
+    selected_model_name = st.selectbox("Select AI Model", options=list(model_ids.keys()))
+    st.markdown("### 📝 Report Instructions")
     st.markdown("""
-    1. Upload X-ray image (JPG/PNG)
-    2. Select analysis model
-    3. Review AI findings
-    4. Download medical report
-    """)
-    
-    st.markdown("---")
-    st.markdown("### ⚠️ Medical Disclaimer")
-    st.markdown("""
-    This tool provides preliminary analysis only. 
-    Final diagnosis must be made by a qualified radiologist.
+    1. Upload an X-ray image
+    2. Select the AI model for analysis
+    3. View the analysis results
+    4. Download the PDF report
     """)
 
-# Main Content
+# Main content
 st.markdown("""
-    <div style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-                color: white;
-                padding: 2rem;
-                border-radius: 0 0 12px 12px;
-                margin: -1rem -1rem 2rem -1rem;
-                text-align: center;">
-        <h1>BoneScan AI</h1>
-        <h3 style="font-weight: 400;">Medical Imaging Analysis System</h3>
-    </div>
+    <h1 style="text-align: center;">BoneScan AI - Fracture Detection</h1>
 """, unsafe_allow_html=True)
 
-# Main columns
-col1, col2 = st.columns([2, 1], gap="large")
+uploaded_file = st.file_uploader("Upload X-ray Image", type=["jpg", "jpeg", "png"])
 
-with col1:
-    st.markdown("""
-        <div class="card upload-card">
-            <h2>📤 Upload X-ray Image</h2>
-            <p>Upload clear anterior-posterior or lateral view X-rays in JPG or PNG format</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    uploaded_file = st.file_uploader(
-        "Select or drag X-ray image here", 
-        type=["jpg", "jpeg", "png"],
-        label_visibility="collapsed"
-    )
-    
-    if uploaded_file:
-        try:
-            # Save uploaded image
-            image_path = "temp_xray.jpg"
-            image_file = Image.open(uploaded_file).convert("RGB")
-            image_file.save(image_path)
-            
-            st.image(image_file, caption="Uploaded X-ray", use_column_width=True)
-            
-            # Load model
-            with st.spinner(f"Loading {selected_model_name} model..."):
-                file_id = model_ids[selected_model_name]
-                model = load_tensorflow_model(file_id, selected_model_name.replace(" ", "_"))
-                
-            # Analyze image
-            with st.spinner("Analyzing X-ray..."):
-                processed_image = preprocess_image_tf(image_file, model)
-                prediction = model.predict(processed_image)
-                confidence = prediction[0][0]
-                result = "Fracture Detected" if confidence > 0.5 else "No Fracture Detected"
-                confidence_percent = confidence * 100 if result == "Fracture Detected" else (1 - confidence) * 100
-                
-                # Generate recommendations
-                if result == "Fracture Detected":
-                    severity = "high" if confidence_percent > 75 else "medium" if confidence_percent > 50 else "low"
-                    recommendations = [
-                        f"{'Immediate' if severity == 'high' else 'Prompt'} orthopedic consultation recommended",
-                        "Immobilize the affected area",
-                        "Avoid weight-bearing activities",
-                        "Apply ice packs for 15-20 minutes every hour if swelling present",
-                        "Pain management with appropriate analgesics",
-                        "Follow-up imaging as clinically indicated"
-                    ]
-                else:
-                    recommendations = [
-                        "Clinical correlation recommended if symptomatic",
-                        "Consider follow-up imaging if pain persists beyond 1-2 weeks",
-                        "RICE protocol (Rest, Ice, Compression, Elevation) as needed",
-                        "Over-the-counter analgesics if required",
-                        "Return if symptoms worsen or new symptoms develop"
-                    ]
-                
-                # Display results
-                st.markdown(f"""
-                    <div class="card result-card">
-                        <h2>Analysis Results</h2>
-                        <div style="font-size: 1.2rem; margin: 1rem 0;">
-                            <strong>Diagnosis:</strong> <span class="{'risk-high' if result == 'Fracture Detected' else 'risk-low'}">
-                                {result}
-                            </span>
-                        </div>
-                        <div style="font-size: 1.2rem;">
-                            <strong>Confidence:</strong> {confidence_percent:.1f}%
-                        </div>
-                        <div style="font-size: 1.2rem; margin-top: 1rem;">
-                            <strong>Model:</strong> {selected_model_name}
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                # Generate and show PDF report
-                with st.spinner("Generating medical report..."):
-                    pdf_path = create_pdf_report(
-                        image_path=image_path,
-                        result=result,
-                        confidence=confidence_percent,
-                        model_name=selected_model_name,
-                        recommendations=recommendations
-                    )
-                    
-                    st.markdown(create_download_link(pdf_path), unsafe_allow_html=True)
-                
-                # Show recommendations
-                st.markdown(f"""
-                    <div class="card" style="border-left: 4px solid {'var(--danger)' if result == 'Fracture Detected' else 'var(--success)'};">
-                        <h3>Medical Recommendations</h3>
-                        <ul>
-                            {"".join([f"<li>{rec}</li>" for rec in recommendations])}
-                        </ul>
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                if result == "No Fracture Detected":
-                    st.balloons()
-                    
-        except Exception as e:
-            st.error(f"Error processing image: {str(e)}")
-            st.markdown("""
-                <div class="card" style="border-left: 4px solid var(--danger);">
-                    <h3>Processing Error</h3>
-                    <p>Please try again with a different image or model.</p>
-                    <p>Technical details: {}</p>
-                </div>
-            """.format(str(e)), unsafe_allow_html=True)
+if uploaded_file:
+    image_file = Image.open(uploaded_file)
+    st.image(image_file, caption="Uploaded X-ray", use_column_width=True)
 
-with col2:
-    st.markdown(f"""
-        <div class="card model-card">
-            <h2>Selected AI Model</h2>
-            <p><strong>{selected_model_name}</strong></p>
-            <p>This model analyzes radiographic images for fracture detection.</p>
-            
-            <h4>Performance Characteristics</h4>
-            <div style="margin: 1rem 0;">
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Sensitivity</span>
-                    <span>92-96%</span>
-                </div>
-                <div style="height: 6px; background: var(--border); border-radius: 3px; margin: 0.3rem 0;">
-                    <div style="width: 94%; height: 100%; background: var(--primary); border-radius: 3px;"></div>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Specificity</span>
-                    <span>93-97%</span>
-                </div>
-                <div style="height: 6px; background: var(--border); border-radius: 3px; margin: 0.3rem 0;">
-                    <div style="width: 95%; height: 100%; background: var(--primary); border-radius: 3px;"></div>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Accuracy</span>
-                    <span>93-96%</span>
-                </div>
-                <div style="height: 6px; background: var(--border); border-radius: 3px; margin: 0.3rem 0;">
-                    <div style="width: 94%; height: 100%; background: var(--primary); border-radius: 3px;"></div>
-                </div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
-        <div class="card">
-            <h2>Analysis Process</h2>
-            <ol style="padding-left: 1.2rem;">
-                <li style="margin-bottom: 0.5rem;">Image quality assessment</li>
-                <li style="margin-bottom: 0.5rem;">Feature extraction</li>
-                <li style="margin-bottom: 0.5rem;">Pattern recognition</li>
-                <li style="margin-bottom: 0.5rem;">Probability calculation</li>
-                <li>Result interpretation</li>
-            </ol>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
-        <div class="card">
-            <h2>Optimal Imaging</h2>
-            <ul style="padding-left: 1.2rem;">
-                <li style="margin-bottom: 0.5rem;">Proper anatomical positioning</li>
-                <li style="margin-bottom: 0.5rem;">Adequate penetration</li>
-                <li style="margin-bottom: 0.5rem;">Minimal motion artifact</li>
-                <li style="margin-bottom: 0.5rem;">Include joint above/below</li>
-                <li>Two orthogonal views when possible</li>
-            </ul>
-        </div>
-    """, unsafe_allow_html=True)
+    # Load the model and process the image
+    with st.spinner("Processing image..."):
+        file_id = model_ids[selected_model_name]
+        model = load_tensorflow_model(file_id, selected_model_name)
+        processed_image = preprocess_image_tf(image_file, model)
+        prediction = model.predict(processed_image)
+        confidence = prediction[0][0]
 
-# Footer
-st.markdown("---")
-st.markdown("""
-    <div style="text-align: center; color: var(--text-light); font-size: 0.9rem; padding: 1rem;">
-        <p>BoneScan AI Medical Imaging System | Version 2.1</p>
-        <p>© 2025 Radiology AI Research Group | NIT Meghalaya</p>
-    </div>
-""", unsafe_allow_html=True)
+        result = "Fracture Detected" if confidence > 0.5 else "Normal"
+        confidence_percent = confidence * 100 if result == "Fracture Detected" else (1 - confidence) * 100
+
+        timestamp = datetime.now()
+
+        # Display results
+        st.markdown(f"### Diagnosis Result: {result}")
+        st.markdown(f"Confidence Level: {confidence_percent:.2f}%")
+
+        # Generate PDF report
+        if st.button("Download Report"):
+            logo_path = "https://www.nitm.ac.in/cygnus/nitmeghalaya/ckfinder/userfiles/images/NITM.gif"  # Change this to the actual logo path
+            report_filename = create_pdf(patient_name, doctor_name, result, confidence_percent, selected_model_name, timestamp, logo_path)
+            with open(report_filename, "rb") as file:
+                st.download_button(
+                    label="Download Report",
+                    data=file,
+                    file_name=report_filename,
+                    mime="application/pdf"
+                )
