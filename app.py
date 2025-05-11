@@ -130,29 +130,6 @@ def create_medical_report(report_type, image_path=None, result=None, confidence=
             pdf.cell(10, 7)
             pdf.cell(0, 7, f"• {rec}", 0, 1)
     
-    elif report_type == "Prescription":
-        # Medications
-        pdf.set_font('Arial', 'B', 14)
-        pdf.cell(0, 10, "PRESCRIBED MEDICATIONS", 0, 1, 'C')
-        pdf.set_font('Arial', '', 11)
-        
-        # Table header
-        pdf.set_fill_color(200, 200, 200)
-        pdf.cell(60, 8, "Medication", 1, 0, 'C', 1)
-        pdf.cell(30, 8, "Dosage", 1, 0, 'C', 1)
-        pdf.cell(30, 8, "Frequency", 1, 0, 'C', 1)
-        pdf.cell(30, 8, "Duration", 1, 0, 'C', 1)
-        pdf.cell(40, 8, "Instructions", 1, 1, 'C', 1)
-        
-        # Medication rows
-        pdf.set_fill_color(255, 255, 255)
-        for med in medications:
-            pdf.cell(60, 8, med['name'], 1)
-            pdf.cell(30, 8, med['dosage'], 1)
-            pdf.cell(30, 8, med['frequency'], 1)
-            pdf.cell(30, 8, med['duration'], 1)
-            pdf.cell(40, 8, med['special_instructions'], 1, 1)
-    
     # Additional Instructions
     pdf.ln(10)
     pdf.set_font('Arial', 'B', 14)
@@ -646,12 +623,3 @@ with tab2:
                         base64_pdf = base64.b64encode(f.read()).decode('utf-8')
                     pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600" type="application/pdf"></iframe>'
                     st.markdown(pdf_display, unsafe_allow_html=True)
-
-# Footer
-st.markdown("---")
-st.markdown("""
-    <div style="text-align: center; color: var(--text-light); font-size: 0.9rem; padding: 1rem;">
-        <p>BoneScan AI Medical System | Version 2.1</p>
-        <p>© 2025 Radiology AI Research Group | NIT Meghalaya</p>
-    </div>
-""", unsafe_allow_html=True)
