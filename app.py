@@ -1,12 +1,12 @@
 import streamlit as st
-from fpdf import FPDF
-from datetime import datetime
-from tensorflow.keras.models import load_model
 import numpy as np
+from tensorflow.keras.models import load_model
+from PIL import Image
 import os
 import gdown
-from PIL import Image
 import time
+from fpdf import FPDF
+from datetime import datetime
 
 # Mapping of model names to Google Drive file IDs
 model_ids = {
