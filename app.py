@@ -10,7 +10,7 @@ model_ids = {
     "DenseNet169 (Keras)": "1dIhc-0vd9sDoU5O6H0ZE6RYrP-CAyWks",
     # "InceptionV3 (Keras)": "1ARBL_SK66Ppj7_kJ1Pe2FhH2olbTQHWY",
     # "InceptionV3 WITH CNN (Keras)": "10B53bzc1pYrQnBfDqBWrDpNmzWoOl9ac",
-    "InceptionV3 wuth CNN (Keras)": "10B53bzc1pYrQnBfDqBWrDpNmzWoOl9ac",
+    "InceptionV3 (Keras)": "10B53bzc1pYrQnBfDqBWrDpNmzWoOl9ac",
     "MobileNet (Keras)": "14YuV3qZb_6FI7pXoiJx69HxiDD4uNc_Q",
     "EfficientNetB3 (Keras)": "1cQA3_oH2XjDFK-ZE9D9YsP6Ya8fQiPOy"
 }
