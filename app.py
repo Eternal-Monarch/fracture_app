@@ -57,8 +57,8 @@ def create_medical_report(report_type, image_path=None, result=None, confidence=
     pdf.set_font('Arial', 'B', 12)
     pdf.cell(0, 5, "BoneScan AI Medical Center", 0, 1, 'C')
     pdf.set_font('Arial', '', 10)
-    pdf.cell(0, 5, "123 Medical Drive, Healthcare City", 0, 1, 'C')
-    pdf.cell(0, 5, "Phone: (123) 456-7890 | License: MED123456", 0, 1, 'C')
+    pdf.cell(0, 5, "NIT MEGHALAYA", 0, 1, 'C')
+    pdf.cell(0, 5, "Phone: 9903487969| License: MED123456", 0, 1, 'C')
     pdf.ln(5)
     
     # Report metadata
@@ -68,20 +68,20 @@ def create_medical_report(report_type, image_path=None, result=None, confidence=
     pdf.ln(5)
     
     # Patient information box
-    pdf.set_fill_color(240, 240, 240)
-    pdf.rect(10, 45, 190, 30, 'F')
-    pdf.set_font('Arial', 'B', 12)
-    pdf.set_xy(15, 50)
-    pdf.cell(0, 5, "PATIENT INFORMATION", 0, 1)
-    pdf.set_font('Arial', '', 10)
-    pdf.set_xy(15, 57)
-    pdf.cell(40, 5, f"Name: {patient_info['name']}", 0, 0)
-    pdf.cell(40, 5, f"Age: {patient_info['age']}", 0, 0)
-    pdf.cell(40, 5, f"Gender: {patient_info['gender']}", 0, 1)
-    pdf.set_xy(15, 64)
-    pdf.cell(40, 5, f"Patient ID: {patient_info['id']}", 0, 0)
-    pdf.cell(40, 5, f"Allergies: {patient_info['allergies']}", 0, 1)
-    pdf.ln(10)
+    # pdf.set_fill_color(240, 240, 240)
+    # pdf.rect(10, 45, 190, 30, 'F')
+    # pdf.set_font('Arial', 'B', 12)
+    # pdf.set_xy(15, 50)
+    # pdf.cell(0, 5, "PATIENT INFORMATION", 0, 1)
+    # pdf.set_font('Arial', '', 10)
+    # pdf.set_xy(15, 57)
+    # pdf.cell(40, 5, f"Name: {patient_info['name']}", 0, 0)
+    # pdf.cell(40, 5, f"Age: {patient_info['age']}", 0, 0)
+    # pdf.cell(40, 5, f"Gender: {patient_info['gender']}", 0, 1)
+    # pdf.set_xy(15, 64)
+    # pdf.cell(40, 5, f"Patient ID: {patient_info['id']}", 0, 0)
+    # pdf.cell(40, 5, f"Allergies: {patient_info['allergies']}", 0, 1)
+    # pdf.ln(10)
     
     if report_type == "X-ray Analysis":
         # Image Section
@@ -551,11 +551,11 @@ with tab1:
                                             st.success("Medical report generated successfully!")
                                             st.markdown(create_download_button(pdf_bytes, "Xray_Analysis_Report.pdf"), unsafe_allow_html=True)
                                             
-                                            # Preview
-                                            with io.BytesIO(pdf_bytes) as pdf_file:
-                                                base64_pdf = base64.b64encode(pdf_file.read()).decode('utf-8')
-                                            pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600" type="application/pdf"></iframe>'
-                                            st.markdown(pdf_display, unsafe_allow_html=True)
+                                            # # Preview
+                                            # with io.BytesIO(pdf_bytes) as pdf_file:
+                                            #     base64_pdf = base64.b64encode(pdf_file.read()).decode('utf-8')
+                                            # pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600" type="application/pdf"></iframe>'
+                                            # st.markdown(pdf_display, unsafe_allow_html=True)
             
             except Exception as e:
                 st.error(f"Error processing image: {str(e)}")
