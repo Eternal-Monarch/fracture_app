@@ -1,10 +1,9 @@
 import streamlit as st
 import numpy as np
 from tensorflow.keras.models import load_model
-from PIL import Image
+from PIL import Image  # Only using Pillow (PIL)
 import os
 import gdown
-import cv2
 
 # Mapping of model names to Google Drive file IDs
 model_ids = {
@@ -24,13 +23,12 @@ def load_tensorflow_model(file_id, model_name):
         gdown.download(f"https://drive.google.com/uc?id={file_id}", model_path, quiet=False)
     return load_model(model_path)
 
-# Preprocessing function
+# Preprocessing function using only Pillow (PIL)
 def preprocess_image_tf(uploaded_image, model):
     input_shape = model.input_shape[1:3]
-    img = uploaded_image.resize(input_shape).convert("L")
+    img = uploaded_image.resize(input_shape).convert("RGB")  # Convert to RGB using Pillow
     img_array = np.array(img) / 255.0
-    img_array = np.stack([img_array] * 3, axis=-1)
-    img_array = np.expand_dims(img_array, axis=0)
+    img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
     return img_array
 
 # Streamlit Page Configuration
@@ -40,10 +38,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-# Theme configuration in session state
-if 'theme' not in st.session_state:
-    st.session_state.theme = 'light'
 
 # Function to toggle theme
 def toggle_theme():
