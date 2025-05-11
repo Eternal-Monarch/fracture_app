@@ -4,19 +4,16 @@ from tensorflow.keras.models import load_model
 from PIL import Image
 import os
 import gdown
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import datetime
 
 # Mapping of model names to Google Drive file IDs
 model_ids = {
     "DenseNet169 (Keras)": "1dIhc-0vd9sDoU5O6H0ZE6RYrP-CAyWks",
-    #orginal undersampling inception v3 modle code 
-    # "InceptionV3 (Keras)": "1ARBL_SK66Ppj7_kJ1Pe2FhH2olbTQHWY",
-    # "InceptionV3 WITH CNN (Keras)": "10B53bzc1pYrQnBfDqBWrDpNmzWoOl9ac",
-        #orginal undersampling inception v3 modle code 
     "InceptionV3 (Keras)": "10B53bzc1pYrQnBfDqBWrDpNmzWoOl9ac",
-        #orginal undersampling mobilenet v3 modle code 
     "MobileNet (Keras)": "14YuV3qZb_6FI7pXoiJx69HxiDD4uNc_Q",
-        #orginal undersampling inception v3 modle code 
-    "MobileNet (Keras)": "1mlfoy6kKXUwIciZW3nftmiMHOTzpy6_s",
     "EfficientNetB3 (Keras)": "1cQA3_oH2XjDFK-ZE9D9YsP6Ya8fQiPOy"
 }
 
@@ -38,6 +35,46 @@ def preprocess_image_tf(uploaded_image, model):
     img_array = np.stack([img_array] * 3, axis=-1)
     img_array = np.expand_dims(img_array, axis=0)
     return img_array
+
+# Function to generate the PDF report
+def generate_pdf(fracture_status, confidence_percent, model_name):
+    # Create a byte stream to save the PDF in memory
+    buffer = BytesIO()
+    
+    # Create a canvas for PDF creation
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    
+    # Add the NIT Meghalaya logo at the top
+    c.drawImage("https://www.nitm.ac.in/cygnus/nitmeghalaya/ckfinder/userfiles/images/NITM.gif", 10, height-40, width=100, preserveAspectRatio=True)
+
+    # Set title
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(150, height-40, "BoneScan AI - Fracture Detection Report")
+    
+    # Add date and time
+    c.setFont("Helvetica", 10)
+    current_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    c.drawString(150, height-60, f"Date & Time: {current_datetime}")
+    
+    # Add model and fracture status
+    c.setFont("Helvetica", 10)
+    c.drawString(150, height-80, f"Model: {model_name}")
+    c.drawString(150, height-100, f"Fracture Status: {fracture_status}")
+    c.drawString(150, height-120, f"Confidence: {confidence_percent:.1f}%")
+    
+    # Add disclaimer
+    c.setFont("Helvetica-Oblique", 8)
+    c.drawString(150, height-140, "Disclaimer: This tool is for research purposes only. Always consult a qualified healthcare professional for medical diagnosis.")
+    
+    # Finalize and save the PDF in memory
+    c.showPage()
+    c.save()
+    
+    # Move the pointer to the start of the StringIO buffer
+    buffer.seek(0)
+    
+    return buffer
 
 # Streamlit Page Configuration
 st.set_page_config(
