@@ -130,6 +130,29 @@ def create_medical_report(report_type, image_path=None, result=None, confidence=
             pdf.cell(10, 7)
             pdf.cell(0, 7, f"• {rec}", 0, 1)
     
+    elif report_type == "Prescription":
+        # Medications
+        pdf.set_font('Arial', 'B', 14)
+        pdf.cell(0, 10, "PRESCRIBED MEDICATIONS", 0, 1, 'C')
+        pdf.set_font('Arial', '', 11)
+        
+        # Table header
+        pdf.set_fill_color(200, 200, 200)
+        pdf.cell(60, 8, "Medication", 1, 0, 'C', 1)
+        pdf.cell(30, 8, "Dosage", 1, 0, 'C', 1)
+        pdf.cell(30, 8, "Frequency", 1, 0, 'C', 1)
+        pdf.cell(30, 8, "Duration", 1, 0, 'C', 1)
+        pdf.cell(40, 8, "Instructions", 1, 1, 'C', 1)
+        
+        # Medication rows
+        pdf.set_fill_color(255, 255, 255)
+        for med in medications:
+            pdf.cell(60, 8, med['name'], 1)
+            pdf.cell(30, 8, med['dosage'], 1)
+            pdf.cell(30, 8, med['frequency'], 1)
+            pdf.cell(30, 8, med['duration'], 1)
+            pdf.cell(40, 8, med['special_instructions'], 1, 1)
+    
     # Additional Instructions
     pdf.ln(10)
     pdf.set_font('Arial', 'B', 14)
@@ -407,30 +430,71 @@ with tab1:
                             </div>
                         """, unsafe_allow_html=True)
                         
-                        # Generate PDF Report
-                        if st.button("Generate Medical Report"):
-                            # Skip the additional fields for patient info and physician here
-                            pdf_path = create_medical_report(
-                                report_type="X-ray Analysis",
-                                image_path=image_path,
-                                result=result,
-                                confidence=confidence_percent,
-                                model_name=selected_model_name,
-                                recommendations=recommendations,
-                                patient_info=None,  # Do not include patient info here
-                                medications=[],
-                                instructions="",
-                                doctor_info=None  # Do not include doctor info here
-                            )
+                        # Patient info form for report
+                        with st.form("patient_info_form"):
+                            st.markdown("### Patient Information for Report")
+                            p_col1, p_col2 = st.columns(2)
+                            with p_col1:
+                                patient_name = st.text_input("Full Name*", key="p_name_xray")
+                                patient_age = st.text_input("Age*", key="p_age_xray")
+                            with p_col2:
+                                patient_gender = st.selectbox("Gender*", ["Male", "Female", "Other"], key="p_gender_xray")
+                                patient_id = st.text_input("Patient ID*", key="p_id_xray")
+                            patient_allergies = st.text_area("Known Allergies", "None", key="p_allergies_xray")
                             
-                            st.success("Medical report generated successfully!")
-                            st.markdown(create_download_link(pdf_path, "Xray_Analysis_Report.pdf"), unsafe_allow_html=True)
+                            # Doctor info
+                            st.markdown("### Attending Physician")
+                            d_col1, d_col2 = st.columns(2)
+                            with d_col1:
+                                doctor_name = st.text_input("Doctor Name*", key="d_name_xray")
+                                doctor_specialty = st.text_input("Specialty*", key="d_specialty_xray")
+                            with d_col2:
+                                doctor_license = st.text_input("License Number*", key="d_license_xray")
+                                doctor_contact = st.text_input("Contact*", key="d_contact_xray")
                             
-                            # Preview
-                            with open(pdf_path, "rb") as f:
-                                base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-                            pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600" type="application/pdf"></iframe>'
-                            st.markdown(pdf_display, unsafe_allow_html=True)
+                            additional_notes = st.text_area("Additional Clinical Notes", key="notes_xray")
+                            
+                            if st.form_submit_button("Generate Medical Report"):
+                                if not all([patient_name, patient_age, patient_id, doctor_name, doctor_specialty, doctor_license]):
+                                    st.error("Please fill all required fields (marked with *)")
+                                else:
+                                    with st.spinner("Generating report..."):
+                                        patient_info = {
+                                            'name': patient_name,
+                                            'age': patient_age,
+                                            'gender': patient_gender,
+                                            'id': patient_id,
+                                            'allergies': patient_allergies
+                                        }
+                                        
+                                        doctor_info = {
+                                            'name': doctor_name,
+                                            'specialty': doctor_specialty,
+                                            'license': doctor_license,
+                                            'contact': doctor_contact
+                                        }
+                                        
+                                        pdf_path = create_medical_report(
+                                            report_type="X-ray Analysis",
+                                            image_path=image_path,
+                                            result=result,
+                                            confidence=confidence_percent,
+                                            model_name=selected_model_name,
+                                            recommendations=recommendations,
+                                            patient_info=patient_info,
+                                            medications=[],
+                                            instructions=additional_notes,
+                                            doctor_info=doctor_info
+                                        )
+                                        
+                                        st.success("Medical report generated successfully!")
+                                        st.markdown(create_download_link(pdf_path, "Xray_Analysis_Report.pdf"), unsafe_allow_html=True)
+                                        
+                                        # Preview
+                                        with open(pdf_path, "rb") as f:
+                                            base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+                                        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600" type="application/pdf"></iframe>'
+                                        st.markdown(pdf_display, unsafe_allow_html=True)
             
             except Exception as e:
                 st.error(f"Error processing image: {str(e)}")
@@ -467,5 +531,127 @@ with tab1:
                     </div>
                 </div>
             </div>
+            
+            <div class="card">
+                <h2>Imaging Guidelines</h2>
+                <ul>
+                    <li>Use proper anatomical positioning</li>
+                    <li>Ensure adequate penetration</li>
+                    <li>Include joint above/below injury</li>
+                    <li>Minimize motion artifacts</li>
+                </ul>
+            </div>
         """, unsafe_allow_html=True)
 
+with tab2:
+    st.markdown("""
+        <div class="card upload-card">
+            <h2>💊 Medical Prescription Generator</h2>
+            <p>Create professional prescriptions for your patients</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    with st.form("prescription_form"):
+        st.markdown("### Patient Information")
+        p_col1, p_col2 = st.columns(2)
+        with p_col1:
+            patient_name = st.text_input("Full Name*", key="p_name_rx")
+            patient_age = st.text_input("Age*", key="p_age_rx")
+        with p_col2:
+            patient_gender = st.selectbox("Gender*", ["Male", "Female", "Other"], key="p_gender_rx")
+            patient_id = st.text_input("Patient ID*", key="p_id_rx")
+        patient_allergies = st.text_area("Known Allergies", "None", key="p_allergies_rx")
+        
+        st.markdown("### Clinical Information")
+        diagnosis = st.text_area("Diagnosis*", placeholder="Primary diagnosis and relevant details", key="diagnosis_rx")
+        
+        st.markdown("### Prescribed Medications")
+        medications = []
+        for i in range(3):  # Allow up to 3 medications
+            with st.expander(f"Medication {i+1}", expanded=(i==0)):
+                med_col1, med_col2, med_col3, med_col4 = st.columns(4)
+                with med_col1:
+                    med_name = st.text_input(f"Name {i+1}", key=f"med_name_{i}_rx")
+                with med_col2:
+                    med_dosage = st.text_input(f"Dosage {i+1}", key=f"med_dosage_{i}_rx")
+                with med_col3:
+                    med_frequency = st.text_input(f"Frequency {i+1}", key=f"med_freq_{i}_rx")
+                with med_col4:
+                    med_duration = st.text_input(f"Duration {i+1}", key=f"med_dur_{i}_rx")
+                special_instructions = st.text_area(f"Special Instructions {i+1}", key=f"med_instr_{i}_rx")
+                
+                if med_name and med_dosage:
+                    medications.append({
+                        'name': med_name,
+                        'dosage': med_dosage,
+                        'frequency': med_frequency,
+                        'duration': med_duration,
+                        'special_instructions': special_instructions
+                    })
+        
+        st.markdown("### Additional Instructions")
+        instructions = st.text_area("Patient instructions, follow-up details, etc.", key="instructions_rx")
+        
+        st.markdown("### Physician Information")
+        d_col1, d_col2 = st.columns(2)
+        with d_col1:
+            doctor_name = st.text_input("Doctor Name*", key="d_name_rx")
+            doctor_specialty = st.text_input("Specialty*", key="d_specialty_rx")
+        with d_col2:
+            doctor_license = st.text_input("License Number*", key="d_license_rx")
+            doctor_contact = st.text_input("Contact Information*", key="d_contact_rx")
+        
+        submitted = st.form_submit_button("Generate Prescription")
+        
+        if submitted:
+            if not all([patient_name, patient_age, patient_id, diagnosis, doctor_name, doctor_specialty, doctor_license]):
+                st.error("Please fill all required fields (marked with *)")
+            elif not medications:
+                st.error("Please add at least one medication")
+            else:
+                with st.spinner("Generating prescription..."):
+                    patient_info = {
+                        'name': patient_name,
+                        'age': patient_age,
+                        'gender': patient_gender,
+                        'id': patient_id,
+                        'allergies': patient_allergies
+                    }
+                    
+                    doctor_info = {
+                        'name': doctor_name,
+                        'specialty': doctor_specialty,
+                        'license': doctor_license,
+                        'contact': doctor_contact
+                    }
+                    
+                    pdf_path = create_medical_report(
+                        report_type="Prescription",
+                        image_path=None,
+                        result=None,
+                        confidence=None,
+                        model_name=None,
+                        recommendations=None,
+                        patient_info=patient_info,
+                        medications=medications,
+                        instructions=instructions,
+                        doctor_info=doctor_info
+                    )
+                    
+                    st.success("Prescription generated successfully!")
+                    st.markdown(create_download_link(pdf_path, "Medical_Prescription.pdf"), unsafe_allow_html=True)
+                    
+                    # Preview
+                    with open(pdf_path, "rb") as f:
+                        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+                    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600" type="application/pdf"></iframe>'
+                    st.markdown(pdf_display, unsafe_allow_html=True)
+
+# Footer
+st.markdown("---")
+st.markdown("""
+    <div style="text-align: center; color: var(--text-light); font-size: 0.9rem; padding: 1rem;">
+        <p>BoneScan AI Medical System | Version 2.1</p>
+        <p>© 2025 Radiology AI Research Group | NIT Meghalaya</p>
+    </div>
+""", unsafe_allow_html=True)
