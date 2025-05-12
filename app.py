@@ -13,12 +13,10 @@ import base64
 # Mapping of model names to Google Drive file IDs
 model_ids = {
     "DenseNet169 (Keras)": "1dIhc-0vd9sDoU5O6H0ZE6RYrP-CAyWks",
-    "InceptionV3 (Keras)": "10B53bzc1pYrQnBfDqBWrDpNmzWoOl9ac", # 
+    "InceptionV3 (Keras)": "10B53bzc1pYrQnBfDqBWrDpNmzWoOl9ac", 
     "MobileNet (Keras)": "1mlfoy6kKXUwIciZW3nftmiMHOTzpy6_s",
     "EfficientNetB3 (Keras)": "1cQA3_oH2XjDFK-ZE9D9YsP6Ya8fQiPOy"
 }
-
-
 
 # Function to download and load fracture detection model
 @st.cache_resource
@@ -181,9 +179,9 @@ def set_theme():
         light_theme()
 
 def dark_theme():
-    st.markdown(f"""
+    st.markdown("""
         <style>
-            :root {{
+            :root {
                 --primary: #4a8fe7;
                 --secondary: #2d3748;
                 --accent: #44e5e7;
@@ -194,37 +192,38 @@ def dark_theme():
                 --success: #68d391;
                 --sidebar-bg: #1a202c;
                 --border: #4a5568;
-            }}
+                --primary-dark: #3a7bd5;
+            }
             
-            [data-testid="stAppViewContainer"] {{
+            [data-testid="stAppViewContainer"] {
                 background-color: var(--background);
                 color: var(--text);
-            }}
+            }
             
-            [data-testid="stSidebar"] {{
+            [data-testid="stSidebar"] {
                 background-color: var(--sidebar-bg) !important;
                 border-right: 1px solid var(--border);
-            }}
+            }
             
-            .st-b7 {{
+            .st-b7 {
                 color: var(--text) !important;
-            }}
+            }
             
-            .stFileUploader>div {{
+            .stFileUploader>div {
                 background-color: var(--card-bg) !important;
                 border-color: var(--border) !important;
-            }}
+            }
             
-            .css-1aumxhk {{
+            .css-1aumxhk {
                 color: var(--text);
-            }}
+            }
         </style>
     """, unsafe_allow_html=True)
 
 def light_theme():
-    st.markdown(f"""
+    st.markdown("""
         <style>
-            :root {{
+            :root {
                 --primary: #4a8fe7;
                 --secondary: #c1d3fe;
                 --accent: #44e5e7;
@@ -235,7 +234,9 @@ def light_theme():
                 --success: #51cf66;
                 --sidebar-bg: #f8f9fa;
                 --border: #e2e8f0;
-            }}
+                --primary-dark: #3a7bd5;
+                --text-light: #666666;
+            }
         </style>
     """, unsafe_allow_html=True)
 
