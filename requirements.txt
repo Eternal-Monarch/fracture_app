@@ -1,6 +1,7 @@
-streamlit
-numpy
-tensorflow
-Pillow
-gdown
-fpdf
+streamlit==1.10.0
+numpy==1.21.5
+tensorflow==2.9.0
+Pillow==9.1.0
+gdown==4.5.1
+fpdf==1.7.2
+
