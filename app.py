@@ -12,10 +12,10 @@ import base64
 # Model mappings for fracture detection
 # Mapping of model names to Google Drive file IDs
 model_ids = {
-    "DenseNet169 (Keras)": "1dIhc-0vd9sDoU5O6H0ZE6RYrP-CAyWks",
-    "InceptionV3 (Keras)": "10B53bzc1pYrQnBfDqBWrDpNmzWoOl9ac", 
-    "MobileNet (Keras)": "1mlfoy6kKXUwIciZW3nftmiMHOTzpy6_s",
-    "EfficientNetB3 (Keras)": "1cQA3_oH2XjDFK-ZE9D9YsP6Ya8fQiPOy"
+    "DenseNet169 (Keras)": "1KB-Sy4P7vlyTTUOYywFIeSMT24yHkulB",
+    "InceptionV3 (Keras)": "136_h4k1A-Aie2HRH3U403Gp2eO8fLJfb", 
+    "MobileNet (Keras)": "1vcYJBpKRvwO9Tma04Wrf9HbHTFM6iN22",
+    "EfficientNetB3 (Keras)": "1Lhs8WLO-_VqZm0oZcAS_u7ctUbeJva-3"
 }
 
 # Function to download and load fracture detection model
