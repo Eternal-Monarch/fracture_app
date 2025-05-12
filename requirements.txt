@@ -2,7 +2,5 @@ streamlit
 tensorflow
 gdown
 numpy
-tensorflow
+pillow
 Pillow
-gdown
-fpdf
